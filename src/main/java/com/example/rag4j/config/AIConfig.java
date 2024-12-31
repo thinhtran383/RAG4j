@@ -12,7 +12,7 @@ public class AIConfig {
 
     @Value("${openai.api-key}")
     private String apiKey;
-    
+
     @Bean
     public OpenAiChatModel model() {
         return OpenAiChatModel.builder()

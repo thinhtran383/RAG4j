@@ -3,7 +3,6 @@ package com.example.rag4j.controller;
 import com.example.rag4j.service.AIService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -11,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AIController {
     private final AIService aiService;
-
+    
     @RequestMapping("/chat")
-    public String chat(@RequestParam String message) {
+    public String chat(String message) {
         return aiService.chat(message);
     }
-
+    
 }

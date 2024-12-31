@@ -1,7 +1,8 @@
 package com.example.rag4j.service;
 
-import com.example.rag4j.config.AIConfig;
+import com.example.rag4j.chatmodel.Father;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.service.AiServices;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -9,10 +10,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AIService {
    private final OpenAiChatModel model;
-   
+
    public String chat(String message) {
-       return model.generate(message);
+       Father friend = AiServices.create(Father.class, model);
+
+       return friend.chat(message);
    }
-    
-    
+
+
 }
