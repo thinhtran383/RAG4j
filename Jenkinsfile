@@ -21,24 +21,41 @@ pipeline {
                 sh 'mvn clean install -DskipTests'
             }
         }
+
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                    sshagent([SSH_KEY_CREDENTIAL_ID]) {
+                        sh('scp -o StrictHostKeyChecking=no target/${JAR_NAME} ${EC2_USER}@$EC2_DOMAIN:${APP_DIR}/${JAR_NAME}')
+                    }
+                }
+            }
+        }
+
         stage('Run Jar on EC2') {
             steps {
                 script {
                     sshagent([SSH_KEY_CREDENTIAL_ID]) {
-                        sh("""
-                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
-                            PID=\$(pgrep -f "java -jar ${APP_DIR}/${JAR_NAME}")
-                            if [ -n "\$PID" ]; then
-                                kill -9 \$PID
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
+                            # Kill the previous application if running
+                            pid=\$(pgrep -f "${JAR_NAME}")
+                            if [ ! -z "\$pid" ]; then
+                                echo "Killing existing application with PID \$pid"
+                                kill -9 \$pid
                             fi
+                            
+                            # Start the new application in background
+                            echo "Starting application in background"
                             nohup java -jar ${APP_DIR}/${JAR_NAME} > ${APP_DIR}/app.log 2>&1 &
-                            '
-                        """)
+                        '
+                        """
                     }
                 }
             }
         }
     }
+
     post {
         success {
             emailext(
@@ -47,6 +64,7 @@ pipeline {
                     body: "The build was successful!\nCheck it at: ${env.BUILD_URL}"
             )
         }
+
         failure {
             emailext(
                     to: 'thinhtran383.au@gmail.com',
