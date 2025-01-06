@@ -27,22 +27,19 @@ pipeline {
                 script {
                     sshagent([SSH_KEY_CREDENTIAL_ID]) {
                         sh("""
-                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
-                    
-                    PID=\$(pgrep -f "java -jar ${APP_DIR}/${JAR_NAME}")
-                    if [ -n "\$PID" ]; then
-                        echo "Stopping existing application (PID: \$PID)..."
-                        kill -9 \$PID
-                        echo "Application stopped."
-                    else
-                        echo "No running application found."
-                    fi
+                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
 
-                    echo "Starting new application..."
-                    nohup java -jar ${APP_DIR}/${JAR_NAME} > ${APP_DIR}/app.log 2>&1 &
-                    echo "Application started successfully."
-                    '
-                """)
+                            PID=\$(ps aux | grep "[j]ava -jar ${APP_DIR}/${JAR_NAME}")
+                            
+                            if [ -n "\$PID" ]; then
+                                echo "Stopping existing application (PID: \$PID)"
+                                kill -9 \$PID
+                            fi
+                            
+                            nohup java -jar ${APP_DIR}/${JAR_NAME} > ${APP_DIR}/app.log 2>&1 &
+                            echo "Application started successfully."
+                            '
+                        """)
                     }
                 }
             }
