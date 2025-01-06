@@ -21,23 +21,17 @@ pipeline {
                 sh 'mvn clean install -DskipTests'
             }
         }
-
         stage('Run Jar on EC2') {
             steps {
                 script {
                     sshagent([SSH_KEY_CREDENTIAL_ID]) {
                         sh("""
                             ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
-
-                            PID=\$(ps aux | grep "[j]ava -jar ${APP_DIR}/${JAR_NAME}")
-                            
+                            PID=\$(pgrep -f "java -jar ${APP_DIR}/${JAR_NAME}")
                             if [ -n "\$PID" ]; then
-                                echo "Stopping existing application (PID: \$PID)"
                                 kill -9 \$PID
                             fi
-                            
                             nohup java -jar ${APP_DIR}/${JAR_NAME} > ${APP_DIR}/app.log 2>&1 &
-                            echo "Application started successfully."
                             '
                         """)
                     }
@@ -45,8 +39,6 @@ pipeline {
             }
         }
     }
-
-
     post {
         success {
             emailext(
@@ -55,7 +47,6 @@ pipeline {
                     body: "The build was successful!\nCheck it at: ${env.BUILD_URL}"
             )
         }
-
         failure {
             emailext(
                     to: 'thinhtran383.au@gmail.com',
