@@ -37,7 +37,11 @@ pipeline {
             steps {
                 script {
                     sshagent([SSH_KEY_CREDENTIAL_ID]) {
-                        sh("ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} 'java -jar ${APP_DIR}/${JAR_NAME}'")
+                        sh("""
+                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
+                    nohup java -jar ${APP_DIR}/${JAR_NAME} > ${APP_DIR}/app.log 2>&1 &
+                    '
+                """)
                     }
                 }
             }
