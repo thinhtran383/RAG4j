@@ -22,31 +22,30 @@ pipeline {
             }
         }
 
-        stage('Deploy to EC2') {
-            steps {
-
-                script {
-                    sshagent([SSH_KEY_CREDENTIAL_ID]) {
-                        sh('scp -o StrictHostKeyChecking=no target/${JAR_NAME} ${EC2_USER}@$EC2_DOMAIN:${APP_DIR}/${JAR_NAME}')
-                    }
-                }
-            }
-        }
-
         stage('Run Jar on EC2') {
             steps {
                 script {
                     sshagent([SSH_KEY_CREDENTIAL_ID]) {
                         sh("""
-                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
-                    nohup java -jar ${APP_DIR}/${JAR_NAME} > ${APP_DIR}/app.log 2>&1 &
-                    '
-                """)
+                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_DOMAIN} '
+                            # Tìm tiến trình đang chạy ứng dụng JAR
+                            PID=\$(ps aux | grep "[j]ava -jar ${APP_DIR}/${JAR_NAME}" | awk \'{print \$2}\')
+                            
+                            if [ -n "\$PID" ]; then
+                                echo "Stopping existing application (PID: \$PID)"
+                                kill -9 \$PID
+                            fi
+                            
+                            nohup java -jar ${APP_DIR}/${JAR_NAME} > ${APP_DIR}/app.log 2>&1 &
+                            echo "Application started successfully."
+                            '
+                        """)
                     }
                 }
             }
         }
     }
+
 
     post {
         success {
