@@ -21,8 +21,6 @@ public class AIController {
 
     @GetMapping("/father/chat")
     public String father(String message, int memoryId) {
-        MessageWindowChatMemory.withMaxMessages(10);
-        
         return assistant.father(memoryId, message);
     }
 

@@ -28,13 +28,12 @@ public class AIConfig {
 //    }
 
     @Bean
-    ChatMemoryProvider chatMemoryProvider(Tokenizer tokenizer) {
+    public ChatMemoryProvider chatMemoryProvider(Tokenizer tokenizer) {
         return memoryId -> TokenWindowChatMemory.builder()
                 .id(memoryId)
                 .maxTokens(5000, tokenizer)
                 .build();
     }
 
-    
-    
+
 }
